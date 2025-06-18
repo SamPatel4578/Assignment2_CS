@@ -1,76 +1,90 @@
-# Author: Your Name
-# Student ID: YourID
-# Email ID: yourEmail
+# Author: Saumya Patel
+# Student ID: 110383897
+# Email ID: patsy076@mymail.unisa.edu.au
 # This is my own work as defined by the University's Academic Misconduct Policy.
 
-def print_student_info():
-    print("Author: Your Name")
-    print("Student ID: YourID")
-    print("Email ID: yourEmail")
-    print("This is my own work as defined by the University's Academic Misconduct Policy.\n")
+def rule_to_binary(rule_number):
+    # Convert rule number to 8-bit binary and reverse it
+    # so index 0 corresponds to pattern 000 and index 7 to 111
+    return format(rule_number, '08b')[::-1]
 
-def get_rule_binary(rule_number):
-    # Return rule as an 8-bit binary string
-    return format(rule_number, '08b')
-
-def get_next_generation(current_gen, rule_bin):
-    # Create the next generation based on the current one
-    length = len(current_gen)
-    next_gen = []
+def next_generation(cells, rule_bin):
+    # Generate the next generation of cells using the rule
+    length = len(cells)
+    new_gen = []
     for i in range(length):
-        left = current_gen[(i - 1) % length]
-        center = current_gen[i]
-        right = current_gen[(i + 1) % length]
-        pattern = f"{left}{center}{right}"
-        index = int(pattern, 2)
-        # Reverse index: 111=0, 000=7 (bit order in binary string)
-        new_value = int(rule_bin[7 - index])
-        next_gen.append(new_value)
-    return next_gen
+        # Get the left, center, and right neighbors with wrap-around
+        left = cells[(i - 1) % length]
+        center = cells[i]
+        right = cells[(i + 1) % length]
 
-def display_generation(generation):
-    # Convert 1 to 'X' and 0 to '.'
-    print(''.join(['X' if cell == 1 else '.' for cell in generation]))
+        # Form the neighborhood pattern as a 3-bit binary number
+        pattern = int(f"{left}{center}{right}", 2)
 
-def get_initial_cells(input_type):
-    if input_type == 'custom':
-        raw_input = input("Enter custom binary string (e.g., 0100101): ")
-        if not all(c in '01' for c in raw_input):
-            raise ValueError("Custom input must only contain 0s and 1s.")
-        return [int(c) for c in raw_input]
-    elif input_type == 'standard':
-        num_cells = int(input("Enter number of cells: "))
-        if num_cells <= 0:
-            raise ValueError("Number of cells must be positive.")
-        cells = [0] * num_cells
-        cells[num_cells // 2] = 1
-        return cells
-    else:
-        raise ValueError("Invalid input type. Choose 'custom' or 'standard'.")
+        # Look up the next value using the rule binary
+        new_value = int(rule_bin[pattern])
+        new_gen.append(new_value)
+    return new_gen
+
+def display_generation(cells):
+    # Print the generation: '.' for 0, 'X' for 1
+    print(''.join('X' if c == 1 else '.' for c in cells))
+
+def get_standard_input(num_cells):
+    # Generate standard input: all 0s except center cell is 1
+    cells = [0] * num_cells
+    cells[num_cells // 2] = 1
+    return cells
+
+def get_custom_input():
+    # Prompt user for custom binary string input
+    raw = input("Enter custom binary string (e.g., 010101): ")
+    if not all(c in '01' for c in raw):
+        raise ValueError("Input must only contain 0s and 1s.")
+    return [int(c) for c in raw]
 
 def main():
-    try:
-        print_student_info()
+    # Print user details and declaration
+    print("Author: Saumya Patel")
+    print("Student ID: 110383897")
+    print("Email ID: patsy076@mymail.unisa.edu.au")
+    print("This is my own work as defined by the University's Academic Misconduct Policy.\n")
 
-        rule_number = int(input("Enter rule number (0–255): "))
-        if not 0 <= rule_number <= 255:
+    try:
+        # Get the rule number from user
+        rule_number = int(input("Enter rule number (0-255): "))
+        if rule_number < 0 or rule_number > 255:
             raise ValueError("Rule number must be between 0 and 255.")
 
+        # Get the number of generations to simulate
         generations = int(input("Enter number of generations: "))
         if generations < 0:
-            raise ValueError("Generations must be a non-negative integer.")
+            raise ValueError("Number of generations must be non-negative.")
 
-        input_type = input("Enter input type (custom/standard): ").strip().lower()
-        current_gen = get_initial_cells(input_type)
+        # Ask user to choose between standard or custom input
+        input_type = input("Input type (standard/custom): ").strip().lower()
 
-        rule_bin = get_rule_binary(rule_number)
+        # Initialize the input cell configuration
+        if input_type == 'standard':
+            num_cells = int(input("Enter number of cells: "))
+            cells = get_standard_input(num_cells)
+        elif input_type == 'custom':
+            cells = get_custom_input()
+        else:
+            raise ValueError("Invalid input type. Use 'standard' or 'custom'.")
 
-        for _ in range(generations + 1):  # including initial
-            display_generation(current_gen)
-            current_gen = get_next_generation(current_gen, rule_bin)
+        # Convert rule number to binary pattern string
+        rule_bin = rule_to_binary(rule_number)
+
+        # Display each generation
+        for _ in range(generations + 1):  # include initial generation
+            display_generation(cells)
+            cells = next_generation(cells, rule_bin)
 
     except Exception as e:
+        # Catch and print any errors that occur during input or processing
         print(f"Error: {e}")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
+
